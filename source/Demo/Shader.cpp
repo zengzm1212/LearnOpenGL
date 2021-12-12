@@ -58,7 +58,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 	if (!success)
 	{
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "failed to compile shader: " << infoLog << std::endl;
+		std::cout << "failed to compile vertex shader: " << infoLog << std::endl;
 	};
 
 	// fragment shader
@@ -69,7 +69,7 @@ Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 	if (!success)
 	{
 		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "failed to compile shader: " << infoLog << std::endl;
+		std::cout << "failed to compile fragment shader: " << infoLog << std::endl;
 	}
 
 	// step 3: link program
