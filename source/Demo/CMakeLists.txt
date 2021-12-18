@@ -11,6 +11,7 @@ include_directories(
  
 include_directories(
 ${THIRD_PARTY_GLFW_INCLUDE}
+${THIRD_PARTY_GLM_INCLUDE}
 )
  
  

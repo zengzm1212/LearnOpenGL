@@ -17,6 +17,7 @@ set(ProjectName "$(ProjectName)")
 set(Demo ${CMAKE_CURRENT_SOURCE_DIR}/Demo) 
 
 set(THIRD_PARTY_GLFW_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../thirdParty/include/GLFW)
+set(THIRD_PARTY_GLM_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../thirdParty/include/glm)
 set(THIRD_PARTY_LIB ${CMAKE_CURRENT_SOURCE_DIR}/../thirdParty/lib/$(Configuration))
 
 # 链接库目录

@@ -4,6 +4,10 @@
 #include <iostream>
 #include "Shader.h"
 
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"  // 这个头文件需要放到 STB_IMAGE_IMPLEMENTATION 宏定义后面
 
@@ -455,10 +459,20 @@ void Demo::TestDemo_3()
 	ourShader.setInt("inputBoxTexture", 0);
 	ourShader.setInt("inputFaceTexture", 1);
 
+
+
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
 	{
+		glm::mat4 trans;
+		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
+		trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
+		unsigned int transformLoc = glGetUniformLocation(ourShader.GetProgramId(), "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
 		// input
 		// -----
 		processInput(window);
@@ -484,6 +498,10 @@ void Demo::TestDemo_3()
 		// glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
+		// 重新定义一个矩阵可以再绘制一个对象
+		glm::mat4 trans1;
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans1));
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(window);
