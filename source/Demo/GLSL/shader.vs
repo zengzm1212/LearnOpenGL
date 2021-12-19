@@ -7,9 +7,12 @@ out vec2 ourTextureCoord;
 
 uniform float xOffset;
 uniform mat4 transform;  // 外界传入的
+uniform mat4 modelMatrix;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 
 void main()
 {
-    gl_Position = transform * vec4(aPos, 1.0f);
-	ourTextureCoord = vec2(aTextureCoord.x, aTextureCoord.y);
+    gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(aPos, 1.0f);
+	ourTextureCoord = vec2(aTextureCoord.x, 1-aTextureCoord.y);
 }

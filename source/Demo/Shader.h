@@ -2,6 +2,7 @@
 
 #include <glad.h> // 包含glad来获取所有的必须OpenGL头文件
 #include <string>
+#include "detail\type_mat.hpp"
 
 class Shader
 {
@@ -16,7 +17,7 @@ public:
 	void setBool(const std::string &name, bool value) const;
 	void setInt(const std::string &name, int value) const;
 	void setFloat(const std::string &name, float value) const;
-
+	void setMat4(const std::string &name, const glm::mat4 &mat) const;
 	std::string GetVertexString() { return m_vertexStr; };
 	std::string GetFragmentString() { return m_fragmentStr; };
 

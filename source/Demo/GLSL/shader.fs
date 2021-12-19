@@ -17,6 +17,6 @@ void main()
 	// FragColor = texture(inputFaceTexture, ourTextureCoord);  // 笑脸
 	
 	// 混合 inputBoxTexture 和 inputFaceTexture 两张图片，以 8:2 混合
-	FragColor = mix(texture(inputBoxTexture, ourTextureCoord), texture(inputFaceTexture, ourTextureCoord), 0.5);
+	FragColor = mix(texture(inputBoxTexture, ourTextureCoord), texture(inputFaceTexture, ourTextureCoord), 0.2);
 	
 }

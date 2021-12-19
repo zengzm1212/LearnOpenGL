@@ -417,6 +417,8 @@ void Demo::TestDemo_3()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	//stbi_set_flip_vertically_on_load(true);  // 倒置y坐标
+
 	int width, height, nrChannels;// nrChannels: 颜色通道个数
 	unsigned char *data = stbi_load("../../../source/Demo/images/container.jpg", &width, &height, &nrChannels, 0); // awesomeface.png  container.jpg
 	if (data)
@@ -442,8 +444,8 @@ void Demo::TestDemo_3()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// int width, height, nrChannels;// nrChannels: 颜色通道个数
-	stbi_set_flip_vertically_on_load(true);  // 倒置y坐标
-	data = stbi_load("../../../source/Demo/images/wall.jpg", &width, &height, &nrChannels, 0);
+
+	data = stbi_load("../../../source/Demo/images/awesomeface.jpg", &width, &height, &nrChannels, 0);  // 不知道为何用png格式的图片，显示的样式不正确
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -465,13 +467,20 @@ void Demo::TestDemo_3()
 	// -----------
 	while (!glfwWindowShouldClose(window))
 	{
-		glm::mat4 trans;
-		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 1.0));
-		trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+		glm::mat4 modelMatrix;
+		glm::mat4 viewMatrix;
+		glm::mat4 projectionMatrix;
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -3.0f));
+		projectionMatrix = glm::perspective(glm::radians(45.0f), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
 
-		unsigned int transformLoc = glGetUniformLocation(ourShader.GetProgramId(), "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+		unsigned int modelLoc = glGetUniformLocation(ourShader.GetProgramId(), "modelMatrix");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+		unsigned int viewLoc = glGetUniformLocation(ourShader.GetProgramId(), "viewMatrix");
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+		unsigned int projectionLoc = glGetUniformLocation(ourShader.GetProgramId(), "projectionMatrix");
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
 
 		// input
 		// -----
@@ -495,14 +504,244 @@ void Demo::TestDemo_3()
 		// ourShader.setFloat("xOffset", offset);
 
 		glBindVertexArray(VAO);
-		// glDrawArrays(GL_TRIANGLES, 0, 3);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		// 重新定义一个矩阵可以再绘制一个对象
-		glm::mat4 trans1;
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans1));
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+		// -------------------------------------------------------------------------------
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+
+	// optional: de-allocate all resources once they've outlived their purpose:
+	// ------------------------------------------------------------------------
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+
+	// glfw: terminate, clearing all previously allocated GLFW resources.
+	// ------------------------------------------------------------------
+	glfwTerminate();
+}
+
+void Demo::TestDemo_4()
+{
+	// glfw: initialize and configure
+	Demo::InitGlfw();
+
+	// create window
+	GLFWwindow* window = Demo::CreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL");
+	if (!window)
+	{
+		return;
+	}
+
+	// glad: load all OpenGL function pointers  该步操作要放在创建window之后，具体原因待分析
+	// ---------------------------------------
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return;
+	}
+
+	Shader ourShader("../../../source/Demo/GLSL/shader.vs", "../../../source/Demo/GLSL/shader.fs");  // 此处如果是相对路径，是相对Demo工程的相对路径
+
+																									 // set up vertex data (and buffer(s)) and configure vertex attributes
+																									 // ------------------------------------------------------------------
+	float vertices[] = {
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+	};
+	// world space positions of our cubes
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
+	unsigned int VBO, VAO/*, EBO*/;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	//glGenBuffers(1, &EBO);
+
+	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// texture coord attribute
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+
+
+	// load and create a texture
+	// ---------------------------------
+	unsigned int textureBuffer1;
+	glGenTextures(1, &textureBuffer1);
+	glBindTexture(GL_TEXTURE_2D, textureBuffer1);
+
+	// 为当前绑定的纹理对象设置环绕过滤方式
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//stbi_set_flip_vertically_on_load(true);  // 倒置y坐标
+
+	int width, height, nrChannels;// nrChannels: 颜色通道个数
+	unsigned char *data = stbi_load("../../../source/Demo/images/container.jpg", &width, &height, &nrChannels, 0); // awesomeface.png  container.jpg
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);  // 为当前绑定的纹理自动生成所有需要的多级渐远纹理
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+
+	// 加载另一张图片
+	unsigned int textureBuffer2;
+	glGenTextures(1, &textureBuffer2);
+	glBindTexture(GL_TEXTURE_2D, textureBuffer2);
+
+	// 为当前绑定的纹理对象设置环绕过滤方式
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// int width, height, nrChannels;// nrChannels: 颜色通道个数
+
+	data = stbi_load("../../../source/Demo/images/awesomeface.jpg", &width, &height, &nrChannels, 0);  // 不知道为何用png格式的图片，显示的样式不正确
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);  // 为当前绑定的纹理自动生成所有需要的多级渐远纹理
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+
+	ourShader.useProgram(); // 设置uniform变量之前需要先激活着色器程序！
+	ourShader.setInt("inputBoxTexture", 0);
+	ourShader.setInt("inputFaceTexture", 1);
+
+
+	glEnable(GL_DEPTH_TEST);
+	// render loop
+	// -----------
+	while (!glfwWindowShouldClose(window))
+	{
+		glm::mat4 modelMatrix = glm::mat4(1.0f);
+		glm::mat4 viewMatrix = glm::mat4(1.0f);
+		glm::mat4 projectionMatrix = glm::mat4(1.0f);
+		modelMatrix = glm::rotate(modelMatrix, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		//modelMatrix = glm::rotate(modelMatrix, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -3.0f));
+		projectionMatrix = glm::perspective(glm::radians(60.0f), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
+
+		unsigned int modelLoc = glGetUniformLocation(ourShader.GetProgramId(), "modelMatrix");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+		unsigned int viewLoc = glGetUniformLocation(ourShader.GetProgramId(), "viewMatrix");
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+		unsigned int projectionLoc = glGetUniformLocation(ourShader.GetProgramId(), "projectionMatrix");
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+
+		// input
+		// -----
+		processInput(window);
+
+		// render
+		// ------
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // glEnable(GL_DEPTH_TEST);  // 添加了深度缓冲后，需要同时清理深度缓冲，否则前一帧的深度信息仍然保存在缓冲中
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureBuffer1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, textureBuffer2);
+
+		// render the triangle
+		ourShader.useProgram();
+
+		// 对 shader 代码中uniform 值的修改，需要再程序启动之后，才能去制定的程序中去找到对应的值
+		// float offset = 0.5f;
+		// ourShader.setFloat("xOffset", offset);
+
+		glBindVertexArray(VAO);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model;
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			if (i % 3 == 0)  // every 3rd iteration (including the first) we set the angle using GLFW's time function.
+				angle = float(glfwGetTime() * 25.0f);
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
 		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(window);
 		glfwPollEvents();

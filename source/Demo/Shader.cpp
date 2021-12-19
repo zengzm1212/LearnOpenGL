@@ -4,6 +4,11 @@
 #include <iostream>
 #include "Demo.h"
 
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+
+
 Shader::Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 	:m_programId(-1)
 {
@@ -120,4 +125,9 @@ void Shader::setFloat(const std::string &name, float value) const
 	//glUniform4f(vertexColorLocation, red, green, blue, alpha);
 
 	glUniform1f(glGetUniformLocation(m_programId, name.c_str()), value);
+}
+
+void Shader::setMat4(const std::string &name, const glm::mat4& mat) const
+{
+	glUniformMatrix4fv(glGetUniformLocation(m_programId, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }

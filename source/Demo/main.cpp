@@ -22,7 +22,8 @@ int main()
 	std::cout << vec.x << vec.y << vec.z << std::endl;
 
 
-	Demo::TestDemo_3();
+	//Demo::TestDemo_3();
+	Demo::TestDemo_4();
 	
 	system("pause");
     return 0;
