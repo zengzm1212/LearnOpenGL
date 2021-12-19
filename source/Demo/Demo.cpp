@@ -3,7 +3,7 @@
 #include <glfw3.h>
 #include <iostream>
 #include "Shader.h"
-
+#include "Camera.h"
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
@@ -13,6 +13,10 @@
 
 namespace
 {
+	// 相机位置 (0, 0.0f, 3.0f)， pitch 0度，yaw 180.0度，相当于时向后看，即向z轴负方向看
+	Camera camera(glm::vec3(0, 0.0f, 3.0f), glm::radians(-15.0f), glm::radians(180.0f), glm::vec3(0, 1, 0));
+
+
 	void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	{
 		// make sure the viewport matches the new window dimensions; note that width and 
@@ -26,11 +30,49 @@ namespace
 	{
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, true);
+
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			camera.ProcessKeyboard(CameraMoveOption::FORWARD);
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			camera.ProcessKeyboard(CameraMoveOption::BACKWARD);
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			camera.ProcessKeyboard(CameraMoveOption::LEFT);
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			camera.ProcessKeyboard(CameraMoveOption::RIGHT);
 	}
 
 	// settings
 	const unsigned int SCR_WIDTH = 800;
 	const unsigned int SCR_HEIGHT = 600;
+
+	double lastX;
+	double lastY;
+	bool firstMouse = true;
+
+
+	void MouseMoveCallBack(GLFWwindow* pWindow, double xPos, double yPos)
+	{
+		if (firstMouse)
+		{
+			lastX = xPos;
+			lastY = yPos;
+			firstMouse = false;
+			return;
+		}
+
+		float xoffset = float(xPos - lastX);
+		float yoffset = float(lastY - yPos); // reversed since y-coordinates go from bottom to top
+
+		lastX = xPos;
+		lastY = yPos;
+
+		camera.ProcessMouseMovement(xoffset, yoffset);
+	}
+
+	void ScrollCallBack(GLFWwindow* pWindow, double xOffset, double yOffset)
+	{
+		camera.ProcessMouseScroll(float(yOffset));
+	}
 }
 
 void Demo::InitGlfw()
@@ -543,10 +585,13 @@ void Demo::TestDemo_4()
 		return;
 	}
 
+	// 关掉鼠标标志
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, &MouseMoveCallBack);
+	glfwSetScrollCallback(window, &ScrollCallBack);
+
 	Shader ourShader("../../../source/Demo/GLSL/shader.vs", "../../../source/Demo/GLSL/shader.fs");  // 此处如果是相对路径，是相对Demo工程的相对路径
 
-																									 // set up vertex data (and buffer(s)) and configure vertex attributes
-																									 // ------------------------------------------------------------------
 	float vertices[] = {
 		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -685,24 +730,34 @@ void Demo::TestDemo_4()
 
 
 	glEnable(GL_DEPTH_TEST);
+
+	// 声明一个相机放在 （0,0,3) 观察 (0,0,0)
+	//Camera camera(glm::vec3(0, -10.0f, 10.0f), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+	// 相机位置 (0, 0.0f, 3.0f)， pitch 0度，yaw 180.0度，相当于时向后看，即向z轴负方向看
+	//Camera camera(glm::vec3(0, 0.0f, 3.0f), glm::radians(-15.0f), glm::radians(180.0f), glm::vec3(0, 1, 0));
+
+	glm::mat4 modelMatrix = glm::mat4(1.0f);
+	glm::mat4 viewMatrix = glm::mat4(1.0f);
+	glm::mat4 projectionMatrix = glm::mat4(1.0f);
+	modelMatrix = glm::rotate(modelMatrix, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	//modelMatrix = glm::rotate(modelMatrix, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+	//viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -10.0f));
+	
+	//projectionMatrix = glm::perspective(glm::radians(camera.GetZoom()), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
+
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
 	{
-		glm::mat4 modelMatrix = glm::mat4(1.0f);
-		glm::mat4 viewMatrix = glm::mat4(1.0f);
-		glm::mat4 projectionMatrix = glm::mat4(1.0f);
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		//modelMatrix = glm::rotate(modelMatrix, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -3.0f));
-		projectionMatrix = glm::perspective(glm::radians(60.0f), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
-
-		unsigned int modelLoc = glGetUniformLocation(ourShader.GetProgramId(), "modelMatrix");
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-		unsigned int viewLoc = glGetUniformLocation(ourShader.GetProgramId(), "viewMatrix");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-		unsigned int projectionLoc = glGetUniformLocation(ourShader.GetProgramId(), "projectionMatrix");
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+		//glm::mat4 modelMatrix = glm::mat4(1.0f);
+		//glm::mat4 viewMatrix = glm::mat4(1.0f);
+		//glm::mat4 projectionMatrix = glm::mat4(1.0f);
+		//modelMatrix = glm::rotate(modelMatrix, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		////modelMatrix = glm::rotate(modelMatrix, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+		////viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -10.0f));
+		//viewMatrix = camera.GetViewMatrix();
+		//projectionMatrix = glm::perspective(glm::radians(60.0f), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
 
 
 		// input
@@ -719,25 +774,31 @@ void Demo::TestDemo_4()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textureBuffer2);
 
-		// render the triangle
 		ourShader.useProgram();
-
-		// 对 shader 代码中uniform 值的修改，需要再程序启动之后，才能去制定的程序中去找到对应的值
-		// float offset = 0.5f;
-		// ourShader.setFloat("xOffset", offset);
-
 		glBindVertexArray(VAO);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
 
+		// 由于相机的一些参数会因为鼠标键盘事件而发生改变，所以不同的时间获取的相机参数是不一样的
+		// 需要把获取参数的动作放在循环中，这样才能实时刷新参数
+		viewMatrix = camera.GetViewMatrix();
+		projectionMatrix = glm::perspective(glm::radians(camera.GetZoom()), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
 		for (unsigned int i = 0; i < 10; i++)
 		{
 			glm::mat4 model;
 			model = glm::translate(model, cubePositions[i]);
 			float angle = 20.0f * i;
-			if (i % 3 == 0)  // every 3rd iteration (including the first) we set the angle using GLFW's time function.
-				angle = float(glfwGetTime() * 25.0f);
+			//if (i % 3 == 0)  // every 3rd iteration (including the first) we set the angle using GLFW's time function.
+			//	angle = float(glfwGetTime() * 25.0f);
 			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+			unsigned int modelLoc = glGetUniformLocation(ourShader.GetProgramId(), "modelMatrix");
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+			//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
+			unsigned int viewLoc = glGetUniformLocation(ourShader.GetProgramId(), "viewMatrix");
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
+			unsigned int projectionLoc = glGetUniformLocation(ourShader.GetProgramId(), "projectionMatrix");
+			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
