@@ -10,6 +10,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"  // 这个头文件需要放到 STB_IMAGE_IMPLEMENTATION 宏定义后面
+#include "GLFWWindowUtils.h"
 
 namespace
 {
@@ -73,33 +74,6 @@ namespace
 	{
 		camera.ProcessMouseScroll(float(yOffset));
 	}
-}
-
-void Demo::InitGlfw()
-{
-	// glfw: initialize and configure
-	// ------------------------------
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);      // main version of openGL
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);      // minor version of openGL
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-#ifdef __APPLE__
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-}
-
-GLFWwindow* Demo::CreateWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share)
-{
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, title, monitor, share);
-	if (window == nullptr)
-	{
-		std::cout << "Failed to create GLFW window" << std::endl;
-		return nullptr;
-	}
-	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	return window;
 }
 
 unsigned int Demo::CreateVertexShader(const char* vertexShaderSource)
@@ -183,8 +157,8 @@ void Demo::TestDemo_1()
 		"out vec4 FragColor;\n"
 		"void main()\n"
 		"{\n"
-		"   FragColor = (ourColor, 1.0f);\n"
-		"}\n\0";
+		"   FragColor = vec4(ourColor, 1.0f);\n"
+		"}\0";
 
 	float vertices[] = {
 		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // left  
@@ -192,21 +166,10 @@ void Demo::TestDemo_1()
 		0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // top   
 	};
 
-	// glfw: initialize and configure
-	Demo::InitGlfw();
-
 	// create window
-	GLFWwindow* window = Demo::CreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL");
+	GLFWwindow* window = GLFWWindowUtils::CreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL");
 	if (!window)
 	{
-		return;
-	}
-
-	// glad: load all OpenGL function pointers
-	// ---------------------------------------
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
 		return;
 	}
 
@@ -293,26 +256,15 @@ void Demo::TestDemo_2()
 		"   FragColor = vec4(ourColor, 1.0f);\n"
 		"}\n\0";
 
-
-	// glfw: initialize and configure
-	Demo::InitGlfw();
-
-	// create window
-	GLFWwindow* window = Demo::CreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL");
+	GLFWwindow* window = GLFWWindowUtils::CreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL");
 	if (!window)
 	{
 		return;
 	}
 
-	// glad: load all OpenGL function pointers
-	// ---------------------------------------
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return;
-	}
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	Shader ourShader("shader.vs", "shader.fs");
+	Shader ourShader("../../../source/Demo/GLSL/Demo_2/shader.vs", "../../../source/Demo/GLSL/Demo_2/shader.fs");
 
 	unsigned int vertexShader = CreateVertexShader(ourShader.GetVertexString().c_str() /*vertexShaderSource*/);
 	unsigned int fragmentShader = CreateFragmentShader(ourShader.GetFragmentString().c_str() /*fragmentShaderSource*/);
@@ -385,25 +337,14 @@ void Demo::TestDemo_2()
 
 void Demo::TestDemo_3()
 {
-	// glfw: initialize and configure
-	Demo::InitGlfw();
-
 	// create window
-	GLFWwindow* window = Demo::CreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL");
+	GLFWwindow* window = GLFWWindowUtils::CreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL");
 	if (!window)
 	{
 		return;
 	}
 
-	// glad: load all OpenGL function pointers  该步操作要放在创建window之后，具体原因待分析
-	// ---------------------------------------
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return;
-	}
-
-	Shader ourShader("../../../source/Demo/GLSL/shader.vs", "../../../source/Demo/GLSL/shader.fs");  // 此处如果是相对路径，是相对Demo工程的相对路径
+	Shader ourShader("../../../source/Demo/GLSL/Demo_4/shader.vs", "../../../source/Demo/GLSL/Demo_4/shader.fs");  // 此处如果是相对路径，是相对Demo工程的相对路径
 
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
@@ -447,62 +388,15 @@ void Demo::TestDemo_3()
 	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
 	// glBindVertexArray(0);
 
-	// load and create a texture
+	// load and create texture
 	// ---------------------------------
-	unsigned int textureBuffer1;
-	glGenTextures(1, &textureBuffer1);
-	glBindTexture(GL_TEXTURE_2D, textureBuffer1);
+	unsigned int textureBuffer1 = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/container.jpg");
 
-	// 为当前绑定的纹理对象设置环绕过滤方式
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//stbi_set_flip_vertically_on_load(true);  // 倒置y坐标
-
-	int width, height, nrChannels;// nrChannels: 颜色通道个数
-	unsigned char *data = stbi_load("../../../source/Demo/images/container.jpg", &width, &height, &nrChannels, 0); // awesomeface.png  container.jpg
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);  // 为当前绑定的纹理自动生成所有需要的多级渐远纹理
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
-
-	// 加载另一张图片
-	unsigned int textureBuffer2;
-	glGenTextures(1, &textureBuffer2);
-	glBindTexture(GL_TEXTURE_2D, textureBuffer2);
-
-	// 为当前绑定的纹理对象设置环绕过滤方式
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// int width, height, nrChannels;// nrChannels: 颜色通道个数
-
-	data = stbi_load("../../../source/Demo/images/awesomeface.jpg", &width, &height, &nrChannels, 0);  // 不知道为何用png格式的图片，显示的样式不正确
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);  // 为当前绑定的纹理自动生成所有需要的多级渐远纹理
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
+	unsigned int textureBuffer2 = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/awesomeface.jpg");
 
 	ourShader.useProgram(); // 设置uniform变量之前需要先激活着色器程序！
 	ourShader.setInt("inputBoxTexture", 0);
 	ourShader.setInt("inputFaceTexture", 1);
-
 
 
 	// render loop
@@ -516,13 +410,9 @@ void Demo::TestDemo_3()
 		viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -3.0f));
 		projectionMatrix = glm::perspective(glm::radians(45.0f), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
 
-		unsigned int modelLoc = glGetUniformLocation(ourShader.GetProgramId(), "modelMatrix");
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-		unsigned int viewLoc = glGetUniformLocation(ourShader.GetProgramId(), "viewMatrix");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-		unsigned int projectionLoc = glGetUniformLocation(ourShader.GetProgramId(), "projectionMatrix");
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-
+		ourShader.setMat4("modelMatrix", modelMatrix);
+		ourShader.setMat4("viewMatrix", viewMatrix);
+		ourShader.setMat4("projectionMatrix", projectionMatrix);
 
 		// input
 		// -----
@@ -567,30 +457,21 @@ void Demo::TestDemo_3()
 
 void Demo::TestDemo_4()
 {
-	// glfw: initialize and configure
-	Demo::InitGlfw();
-
-	// create window
-	GLFWwindow* window = Demo::CreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL");
+	GLFWwindow* window = GLFWWindowUtils::CreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL");
 	if (!window)
 	{
 		return;
 	}
 
-	// glad: load all OpenGL function pointers  该步操作要放在创建window之后，具体原因待分析
-	// ---------------------------------------
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize GLAD" << std::endl;
-		return;
-	}
-
 	// 关掉鼠标标志
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	// 设置回调函数
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, &MouseMoveCallBack);
 	glfwSetScrollCallback(window, &ScrollCallBack);
 
-	Shader ourShader("../../../source/Demo/GLSL/shader.vs", "../../../source/Demo/GLSL/shader.fs");  // 此处如果是相对路径，是相对Demo工程的相对路径
+	Shader ourShader("../../../source/Demo/GLSL/Demo_4/shader.vs", "../../../source/Demo/GLSL/Demo_4/shader.fs");  // 此处如果是相对路径，是相对Demo工程的相对路径
 
 	float vertices[] = {
 		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -671,64 +552,15 @@ void Demo::TestDemo_4()
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
-
-	// load and create a texture
-	// ---------------------------------
-	unsigned int textureBuffer1;
-	glGenTextures(1, &textureBuffer1);
-	glBindTexture(GL_TEXTURE_2D, textureBuffer1);
-
-	// 为当前绑定的纹理对象设置环绕过滤方式
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	//stbi_set_flip_vertically_on_load(true);  // 倒置y坐标
-
-	int width, height, nrChannels;// nrChannels: 颜色通道个数
-	unsigned char *data = stbi_load("../../../source/Demo/images/container.jpg", &width, &height, &nrChannels, 0); // awesomeface.png  container.jpg
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);  // 为当前绑定的纹理自动生成所有需要的多级渐远纹理
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
-
-	// 加载另一张图片
-	unsigned int textureBuffer2;
-	glGenTextures(1, &textureBuffer2);
-	glBindTexture(GL_TEXTURE_2D, textureBuffer2);
-
-	// 为当前绑定的纹理对象设置环绕过滤方式
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// int width, height, nrChannels;// nrChannels: 颜色通道个数
-
-	data = stbi_load("../../../source/Demo/images/awesomeface.jpg", &width, &height, &nrChannels, 0);  // 不知道为何用png格式的图片，显示的样式不正确
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);  // 为当前绑定的纹理自动生成所有需要的多级渐远纹理
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
+	// 加载材质图片
+	unsigned int textureBuffer1 = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/container.jpg");
+	unsigned int textureBuffer2 = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/awesomeface.jpg");
 
 	ourShader.useProgram(); // 设置uniform变量之前需要先激活着色器程序！
 	ourShader.setInt("inputBoxTexture", 0);
 	ourShader.setInt("inputFaceTexture", 1);
 
-
+	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
 
 	// 声明一个相机放在 （0,0,3) 观察 (0,0,0)
@@ -737,29 +569,10 @@ void Demo::TestDemo_4()
 	// 相机位置 (0, 0.0f, 3.0f)， pitch 0度，yaw 180.0度，相当于时向后看，即向z轴负方向看
 	//Camera camera(glm::vec3(0, 0.0f, 3.0f), glm::radians(-15.0f), glm::radians(180.0f), glm::vec3(0, 1, 0));
 
-	glm::mat4 modelMatrix = glm::mat4(1.0f);
-	glm::mat4 viewMatrix = glm::mat4(1.0f);
-	glm::mat4 projectionMatrix = glm::mat4(1.0f);
-	modelMatrix = glm::rotate(modelMatrix, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-	//modelMatrix = glm::rotate(modelMatrix, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-	//viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -10.0f));
-	
-	//projectionMatrix = glm::perspective(glm::radians(camera.GetZoom()), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
-
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
 	{
-		//glm::mat4 modelMatrix = glm::mat4(1.0f);
-		//glm::mat4 viewMatrix = glm::mat4(1.0f);
-		//glm::mat4 projectionMatrix = glm::mat4(1.0f);
-		//modelMatrix = glm::rotate(modelMatrix, glm::radians(-45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		////modelMatrix = glm::rotate(modelMatrix, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-		////viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, -10.0f));
-		//viewMatrix = camera.GetViewMatrix();
-		//projectionMatrix = glm::perspective(glm::radians(60.0f), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
-
-
 		// input
 		// -----
 		processInput(window);
@@ -779,26 +592,24 @@ void Demo::TestDemo_4()
 
 		// 由于相机的一些参数会因为鼠标键盘事件而发生改变，所以不同的时间获取的相机参数是不一样的
 		// 需要把获取参数的动作放在循环中，这样才能实时刷新参数
+		glm::mat4 modelMatrix = glm::mat4(1.0f);
+		glm::mat4 viewMatrix = glm::mat4(1.0f);
+		glm::mat4 projectionMatrix = glm::mat4(1.0f);
 		viewMatrix = camera.GetViewMatrix();
 		projectionMatrix = glm::perspective(glm::radians(camera.GetZoom()), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
 		for (unsigned int i = 0; i < 10; i++)
 		{
-			glm::mat4 model;
-			model = glm::translate(model, cubePositions[i]);
+			//glm::mat4 model;
+			modelMatrix = glm::mat4(1.0f);
+			modelMatrix = glm::translate(modelMatrix, cubePositions[i]);
 			float angle = 20.0f * i;
 			//if (i % 3 == 0)  // every 3rd iteration (including the first) we set the angle using GLFW's time function.
 			//	angle = float(glfwGetTime() * 25.0f);
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-			unsigned int modelLoc = glGetUniformLocation(ourShader.GetProgramId(), "modelMatrix");
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			modelMatrix = glm::rotate(modelMatrix, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 
-			//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
-			unsigned int viewLoc = glGetUniformLocation(ourShader.GetProgramId(), "viewMatrix");
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
-			unsigned int projectionLoc = glGetUniformLocation(ourShader.GetProgramId(), "projectionMatrix");
-			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-
-
+			ourShader.setMat4("modelMatrix", modelMatrix);
+			ourShader.setMat4("viewMatrix", viewMatrix);
+			ourShader.setMat4("projectionMatrix", projectionMatrix);
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
