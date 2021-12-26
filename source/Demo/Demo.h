@@ -14,4 +14,6 @@ public:
 	static void TestDemo_2();
 	static void TestDemo_3();
 	static void TestDemo_4();
+
+	static void TestDemo2_1();
 };
