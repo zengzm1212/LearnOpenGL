@@ -69,6 +69,10 @@ void Camera::ProcessKeyboard(CameraMoveOption direction, float deltaTime)
 		m_position -= m_rihght * velocity;
 	if (direction == CameraMoveOption::RIGHT)
 		m_position += m_rihght * velocity;
+	if (direction == CameraMoveOption::UP)
+		m_position += m_up * velocity;
+	if (direction == CameraMoveOption::DOWN)
+		m_position -= m_up * velocity;
 }
 
 void Camera::ProcessMouseScroll(float yoffset)
