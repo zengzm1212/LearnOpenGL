@@ -3,6 +3,7 @@
 #include <glad.h> // 包含glad来获取所有的必须OpenGL头文件
 #include <string>
 #include "detail\type_mat.hpp"
+#include "detail\type_vec.hpp"
 
 class Shader
 {
@@ -19,7 +20,7 @@ public:
 	void setFloat(const std::string &name, float value) const;
 	void setMat4(const std::string &name, const glm::mat4 &mat) const;
 	void setVec3(const std::string &name, float v0, float v1, float v2) const;
-
+	void setVec3(const std::string &name, const glm::vec3& vec) const;
 
 	std::string GetVertexString() { return m_vertexStr; };
 	std::string GetFragmentString() { return m_fragmentStr; };

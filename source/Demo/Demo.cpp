@@ -642,97 +642,82 @@ void Demo::TestDemo2_1()
 	glfwSetCursorPosCallback(window, &MouseMoveCallBack);
 	glfwSetScrollCallback(window, &ScrollCallBack);
 
-	Shader ourShader("../../../source/Demo/GLSL/Demo2_1/shader.vs", "../../../source/Demo/GLSL/Demo2_1/shader.fs");  // 此处如果是相对路径，是相对Demo工程的相对路径
+	Shader lightShader("../../../source/Demo/GLSL/Demo2_1/lightShader.vs", "../../../source/Demo/GLSL/Demo2_1/lightShader.fs");  // 此处如果是相对路径，是相对Demo工程的相对路径
+	Shader cubeShader("../../../source/Demo/GLSL/Demo2_1/cubeShader.vs", "../../../source/Demo/GLSL/Demo2_1/cubeShader.fs");
 
 	float vertices[] = {
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};
-	// world space positions of our cubes
-	glm::vec3 cubePositions[] = {
-		glm::vec3(0.0f,  0.0f,  0.0f),
-		glm::vec3(2.0f,  5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f,  3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f,  2.0f, -2.5f),
-		glm::vec3(1.5f,  0.2f, -1.5f),
-		glm::vec3(-1.3f,  1.0f, -1.5f)
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+		0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 	};
 
-	unsigned int VBO, VAO/*, EBO*/;
-	glGenVertexArrays(1, &VAO);
+	unsigned int VBO, lightVAO;
+	glGenVertexArrays(1, &lightVAO);
 	glGenBuffers(1, &VBO);
-	//glGenBuffers(1, &EBO);
 
 	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-	glBindVertexArray(VAO);
+	glBindVertexArray(lightVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	// texture coord attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
-	// 加载材质图片
-	unsigned int textureBuffer1 = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/container.jpg");
-	unsigned int textureBuffer2 = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/awesomeface.jpg");
-
-	ourShader.useProgram(); // 设置uniform变量之前需要先激活着色器程序！
-	ourShader.setInt("inputBoxTexture", 0);
-	ourShader.setInt("inputFaceTexture", 1);
+	unsigned int cubeVAO;
+	glGenVertexArrays(1, &cubeVAO);
+	glBindVertexArray(cubeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 
 	// 开启深度测试
 	glEnable(GL_DEPTH_TEST);
+
+	// lightPos
+	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 	// render loop
 	// -----------
@@ -747,13 +732,8 @@ void Demo::TestDemo2_1()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // glEnable(GL_DEPTH_TEST);  // 添加了深度缓冲后，需要同时清理深度缓冲，否则前一帧的深度信息仍然保存在缓冲中
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureBuffer1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, textureBuffer2);
-
-		ourShader.useProgram();
-		glBindVertexArray(VAO);
+		lightShader.useProgram();
+		glBindVertexArray(lightVAO);
 
 		// 由于相机的一些参数会因为鼠标键盘事件而发生改变，所以不同的时间获取的相机参数是不一样的
 		// 需要把获取参数的动作放在循环中，这样才能实时刷新参数
@@ -762,23 +742,29 @@ void Demo::TestDemo2_1()
 		glm::mat4 projectionMatrix = glm::mat4(1.0f);
 		viewMatrix = camera.GetViewMatrix();
 		projectionMatrix = glm::perspective(glm::radians(camera.GetZoom()), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
-		for (unsigned int i = 0; i < 10; i++)
-		{
-			//glm::mat4 model;
-			modelMatrix = glm::mat4(1.0f);
-			modelMatrix = glm::translate(modelMatrix, cubePositions[i]);
-			float angle = 20.0f * i;
-			modelMatrix = glm::rotate(modelMatrix, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 
-			ourShader.setMat4("modelMatrix", modelMatrix);
-			ourShader.setMat4("viewMatrix", viewMatrix);
-			ourShader.setMat4("projectionMatrix", projectionMatrix);
+		lightShader.setMat4("modelMatrix", modelMatrix);
+		lightShader.setMat4("viewMatrix", viewMatrix);
+		lightShader.setMat4("rojectionMatrix", projectionMatrix);
 
-			ourShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-			ourShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		lightShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		lightShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		lightShader.setVec3("lightPos", lightPos);
 
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+		// also draw the lamp object
+		cubeShader.useProgram();
+		cubeShader.setMat4("projection", projectionMatrix);
+		cubeShader.setMat4("view", viewMatrix);
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+		cubeShader.setMat4("model", model);
+
+		glBindVertexArray(cubeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(window);
@@ -787,7 +773,7 @@ void Demo::TestDemo2_1()
 
 	// optional: de-allocate all resources once they've outlived their purpose:
 	// ------------------------------------------------------------------------
-	glDeleteVertexArrays(1, &VAO);
+	glDeleteVertexArrays(1, &lightVAO);
 	glDeleteBuffers(1, &VBO);
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
