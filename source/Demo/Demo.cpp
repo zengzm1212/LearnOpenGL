@@ -726,19 +726,21 @@ void Demo::TestDemo2_1()
 
 	unsigned int diffuseTexture = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/container2.jpg");
 	unsigned int specularTexture = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/container2_specular.jpg");
+	unsigned int matrixTexture = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/matrix.jpg");  // 放射数字的贴图
 
 	// 设置物体本身的材质相关设置
 	lightShader.useProgram();
 	lightShader.setInt("material.diffuse", 0);  // 将漫反射材质绑定到0号槽位
 	lightShader.setInt("material.specular", 1); // 将镜面反射材质绑定到1号槽位
 	lightShader.setFloat("material.shininess", 64.0f);
+	lightShader.setInt("matrixTexture", 2);
 
 	// timing ？？ 干嘛用？
 	float deltaTime = 0.0f;
 	float lastFrame = 0.0f;
 
 	// lighting
-	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+	glm::vec3 lightPos(0.7f, 0.7f, 2.0f);
 
 	// render loop
 	// -----------
@@ -770,7 +772,7 @@ void Demo::TestDemo2_1()
 			//lightColor.r = (float)sin(glfwGetTime() * 2.0f);
 			//lightColor.g = (float)sin(glfwGetTime() * 0.7f);
 			//lightColor.b = (float)sin(glfwGetTime() * 1.3f);
-			glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+			glm::vec3 diffuseColor = lightColor * glm::vec3(0.7f);
 			glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
 
 			// 灯光颜色
@@ -783,6 +785,8 @@ void Demo::TestDemo2_1()
 			viewMatrix = camera.GetViewMatrix();
 			projectionMatrix = glm::perspective(glm::radians(camera.GetZoom()), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
 
+			lightShader.setFloat("matrixMove", (float)glfwGetTime()/2);
+
 			lightShader.setMat4("model", modelMatrix);
 			lightShader.setMat4("view", viewMatrix);
 			lightShader.setMat4("projection", projectionMatrix);
@@ -792,6 +796,9 @@ void Demo::TestDemo2_1()
 
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, specularTexture);
+
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, matrixTexture);
 
 			glBindVertexArray(lightVAO);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
