@@ -21,16 +21,13 @@ in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
   
+uniform vec3 viewPos;
+
 uniform Material material;
 uniform Light light;
-uniform vec3 viewPos;
-uniform float matrixMove;
-uniform sampler2D matrixTexture;
 
 void main()
 {
-    vec2 moveTexCoords = vec2(TexCoords.x, TexCoords.y + matrixMove);
-
     // ambient 环境光
 	vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
 	
@@ -38,13 +35,13 @@ void main()
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(light.position - FragPos);  // 从物体指向光源的方向
     float diff = max(dot(norm, lightDir), 0.0);     // 法向和光源方向的点积，得到漫反射对光的衰减
-    vec3 diffuse = light.diffuse * diff * light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
+    vec3 diffuse =  light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
 	
 	// specular 镜面反射
     vec3 viewDir = normalize(viewPos - FragPos);   // 从物体到眼睛的方向
     vec3 reflectDir = reflect(-lightDir, norm);    // 反射光的方向（取反是因为反射和镜像不一样）
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);  // material.shininess 是反光度，反光度越高，反射能力越强，散射的越少
-    vec3 specular = light.specular * spec * texture(material.specular, TexCoords).rgb + texture(matrixTexture, moveTexCoords).rgb;  
+    vec3 specular = light.specular * spec * texture(material.specular, TexCoords).rgb;  
 	
 	vec3 result = ambient + diffuse + specular;
     FragColor = vec4(result, 1.0);
