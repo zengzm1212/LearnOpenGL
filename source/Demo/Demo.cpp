@@ -751,10 +751,26 @@ void Demo::TestDemo2_1()
 
 		{
 			lightShader.useProgram();
-			lightShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-			lightShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-			lightShader.setVec3("lightPos", lightPos);
 			lightShader.setVec3("viewPos", camera.m_position);
+			lightShader.setVec3("light.position", lightPos);
+
+			glm::vec3 lightColor;
+			lightColor.r = (float)sin(glfwGetTime() * 2.0f);
+			lightColor.g = (float)sin(glfwGetTime() * 0.7f);
+			lightColor.b = (float)sin(glfwGetTime() * 1.3f);
+			glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+			glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+
+			// 灯光颜色
+			lightShader.setVec3("light.ambient", ambientColor);
+			lightShader.setVec3("light.diffuse", diffuseColor);
+			lightShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+			// 物体本身颜色
+			lightShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+			lightShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+			lightShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f); // specular lighting doesn't have full effect on this object's material
+			lightShader.setFloat("material.shininess", 32.0f);
 
 			// 由于相机的一些参数会因为鼠标键盘事件而发生改变，所以不同的时间获取的相机参数是不一样的
 			// 需要把获取参数的动作放在循环中，这样才能实时刷新参数
@@ -771,8 +787,8 @@ void Demo::TestDemo2_1()
 
 
 		{
-			lightPos.x = float(1.0f + sin(glfwGetTime()) * 2.0f);
-			lightPos.y = float(sin(glfwGetTime() / 2.0f) * 1.0f);
+			//lightPos.x = float(1.0f + sin(glfwGetTime()) * 2.0f);
+			//lightPos.y = float(sin(glfwGetTime() / 2.0f) * 1.0f);
 			// also draw the lamp object
 			cubeShader.useProgram();
 			cubeShader.setMat4("projection", projectionMatrix);
