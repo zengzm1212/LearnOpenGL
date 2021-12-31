@@ -777,10 +777,12 @@ void Demo::TestDemo2_1()
 		{
 			lightShader.useProgram();
 			lightShader.setVec3("viewPos", camera.m_position);
-			lightShader.setVec3("light.position", lightPos);
-			//lightShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
+			lightShader.setVec3("light.position", camera.m_position);
+			lightShader.setVec3("light.direction", camera.m_forward);
+			lightShader.setFloat("light.cutOff", cos(glm::radians(12.5f)));
+			lightShader.setFloat("light.outerCutOff", cos(glm::radians(17.5f)));
 
-			glm::vec3 lightColor(10.0); // 用强光源
+			glm::vec3 lightColor(5.0); // 用强光源
 			//lightColor.r = (float)sin(glfwGetTime() * 2.0f);
 			//lightColor.g = (float)sin(glfwGetTime() * 0.7f);
 			//lightColor.b = (float)sin(glfwGetTime() * 1.3f);

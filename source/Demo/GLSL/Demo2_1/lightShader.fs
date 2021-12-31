@@ -11,7 +11,9 @@ struct Material{
 // 光源的影响
 struct Light{
     vec3 position;
-	// vec3 direction;   // 平行光的方向
+	vec3 direction;
+	float cutOff;  // 聚光灯范围的阈值 dot(光线方向 * 灯源位置到物体的方向)
+	float outerCutOff;
 	
 	vec3 ambient;
 	vec3 diffuse;
@@ -33,27 +35,40 @@ uniform Light light;
 
 void main()
 {
-    float distance = length(light.position - FragPos);
-	float attenuation = 1.0 / (light.constant + light.liner * distance + light.quadratic * (distance * distance));
-
-    // ambient 环境光
+    // 从物体到光源位置的方向
+    vec3 lightDir = normalize(light.position - FragPos); //normalize(-light.direction); // 负号从物体指向光源的方向
+	
+	// ambient 环境光
 	vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
 	
-    // diffuse 漫反射光
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(light.position - FragPos); //normalize(-light.direction); // 负号从物体指向光源的方向
-    float diff = max(dot(norm, lightDir), 0.0);     // 法向和光源方向的点积，得到漫反射对光的衰减
-    vec3 diffuse =  light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
+	// diffuse 漫反射光
+	vec3 norm = normalize(Normal);
+	float diff = max(dot(norm, lightDir), 0.0);     // 法向和光源方向的点积，得到漫反射对光的衰减
+	vec3 diffuse =  light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
 	
 	// specular 镜面反射
-    vec3 viewDir = normalize(viewPos - FragPos);   // 从物体到眼睛的方向
-    vec3 reflectDir = reflect(-lightDir, norm);    // 反射光的方向（取反是因为反射和镜像不一样）
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);  // material.shininess 是反光度，反光度越高，反射能力越强，散射的越少
-    vec3 specular = light.specular * spec * texture(material.specular, TexCoords).rgb;  
+	vec3 viewDir = normalize(viewPos - FragPos);   // 从物体到眼睛的方向
+	vec3 reflectDir = reflect(-lightDir, norm);    // 反射光的方向（取反是因为反射和镜像不一样）
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);  // material.shininess 是反光度，反光度越高，反射能力越强，散射的越少
+	vec3 specular = light.specular * spec * texture(material.specular, TexCoords).rgb;  
+	
+	// 设置聚光灯的光照范围。内外光圈，产生一个渐变
+	float theta = dot(lightDir, normalize(-light.direction));
+	float epsilon = light.cutOff - light.outerCutOff;
+	float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+	
+	diffuse *= intensity;
+	specular *= intensity;
+	
+	// 点光源，光强衰减
+	float distance = length(light.position - FragPos);
+	float attenuation = 1.0 / (light.constant + light.liner * distance + light.quadratic * (distance * distance));
 	
 	ambient *= attenuation;
 	diffuse *= attenuation;
 	specular *= attenuation;
+	
 	vec3 result = ambient + diffuse + specular;
-    FragColor = vec4(result, 1.0);
+	FragColor = vec4(result, 1.0);
+
 }
