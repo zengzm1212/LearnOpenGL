@@ -697,6 +697,19 @@ void Demo::TestDemo2_1()
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 	};
 
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
 	unsigned int VBO, lightVAO;
 	glGenVertexArrays(1, &lightVAO);
 	glGenBuffers(1, &VBO);
@@ -765,8 +778,9 @@ void Demo::TestDemo2_1()
 			lightShader.useProgram();
 			lightShader.setVec3("viewPos", camera.m_position);
 			lightShader.setVec3("light.position", lightPos);
+			//lightShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
 
-			glm::vec3 lightColor(1.0);
+			glm::vec3 lightColor(10.0); // 用强光源
 			//lightColor.r = (float)sin(glfwGetTime() * 2.0f);
 			//lightColor.g = (float)sin(glfwGetTime() * 0.7f);
 			//lightColor.b = (float)sin(glfwGetTime() * 1.3f);
@@ -778,12 +792,17 @@ void Demo::TestDemo2_1()
 			lightShader.setVec3("light.diffuse", diffuseColor);
 			lightShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
+			// 设置光线衰减相关的常量
+			lightShader.setFloat("light.constant", 1.0f);
+			lightShader.setFloat("light.liner",    0.09f);
+			lightShader.setFloat("light.quadratic", 0.032f);
+
 			// 由于相机的一些参数会因为鼠标键盘事件而发生改变，所以不同的时间获取的相机参数是不一样的
 			// 需要把获取参数的动作放在循环中，这样才能实时刷新参数
 			viewMatrix = camera.GetViewMatrix();
 			projectionMatrix = glm::perspective(glm::radians(camera.GetZoom()), float(SCR_WIDTH / SCR_HEIGHT), 0.1f, 100.0f);
 
-			lightShader.setMat4("model", modelMatrix);
+			//lightShader.setMat4("model", modelMatrix);
 			lightShader.setMat4("view", viewMatrix);
 			lightShader.setMat4("projection", projectionMatrix);
 
@@ -794,7 +813,15 @@ void Demo::TestDemo2_1()
 			glBindTexture(GL_TEXTURE_2D, specularTexture);
 
 			glBindVertexArray(lightVAO);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
+			for (unsigned int i = 0; i < 10; ++i)
+			{
+				modelMatrix = glm::mat4(1.0);
+				modelMatrix = glm::translate(modelMatrix, cubePositions[i]);
+				float angle = 20.0f * i;
+				modelMatrix = glm::rotate(modelMatrix, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+				lightShader.setMat4("model", modelMatrix);
+				glDrawArrays(GL_TRIANGLES, 0, 36);
+			}
 		}
 
 

@@ -28,7 +28,7 @@ public:
 	// 处理鼠标移动
 	void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
 	// 处理键盘操作
-	void ProcessKeyboard(CameraMoveOption direction, float deltaTime = 0.001f);
+	void ProcessKeyboard(CameraMoveOption direction, float deltaTime = 0.01f);
 	// 处理滚轮操作
 	void ProcessMouseScroll(float yoffset);
 
