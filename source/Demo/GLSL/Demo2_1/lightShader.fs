@@ -8,21 +8,46 @@ struct Material{
 	float shininess;  // 反光度, 影响镜面高光的散射/半径
 };
 
-// 光源的影响
-struct Light{
-    vec3 position;
+// 定向光
+struct DirLight{
 	vec3 direction;
-	float cutOff;  // 聚光灯范围的阈值 dot(光线方向 * 灯源位置到物体的方向)
-	float outerCutOff;
 	
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
+};
+
+// 点光源
+struct PointLight{
+	vec3 position;
 	
 	float constant;
 	float liner;
 	float quadratic;
+	
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
 };
+
+// 聚光灯
+struct SpotLight{
+	vec3 position;
+	vec3 direction;
+	
+	float cutOff;
+	float outerCutOff;
+	
+	float constant;
+	float liner;
+	float quadratic;
+	
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
+
+#define NUM_OF_POINT_LLIGHTS   4   // 点光源的数量
 
 in vec3 FragPos;
 in vec3 Normal;
@@ -30,45 +55,106 @@ in vec2 TexCoords;
   
 uniform vec3 viewPos;
 
+uniform DirLight dirLight;
+uniform PointLight pointLights[NUM_OF_POINT_LLIGHTS];
+uniform SpotLight spotLight;
+
 uniform Material material;
-uniform Light light;
+
+// 函数声明
+vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);  //得到定向光照射的结果
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);   // 得到点光源照射的结果
+vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);   // 得到聚光灯照射的结果
 
 void main()
 {
-    // 从物体到光源位置的方向
-    vec3 lightDir = normalize(light.position - FragPos); //normalize(-light.direction); // 负号从物体指向光源的方向
-	
-	// ambient 环境光
-	vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
-	
-	// diffuse 漫反射光
+    // 法向
 	vec3 norm = normalize(Normal);
-	float diff = max(dot(norm, lightDir), 0.0);     // 法向和光源方向的点积，得到漫反射对光的衰减
-	vec3 diffuse =  light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
+	vec3 viewDir = normalize(viewPos - FragPos);
 	
-	// specular 镜面反射
-	vec3 viewDir = normalize(viewPos - FragPos);   // 从物体到眼睛的方向
-	vec3 reflectDir = reflect(-lightDir, norm);    // 反射光的方向（取反是因为反射和镜像不一样）
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);  // material.shininess 是反光度，反光度越高，反射能力越强，散射的越少
-	vec3 specular = light.specular * spec * texture(material.specular, TexCoords).rgb;  
+	vec3 result = vec3(0, 0, 0);
 	
-	// 设置聚光灯的光照范围。内外光圈，产生一个渐变
-	float theta = dot(lightDir, normalize(-light.direction));
+	// 1、计算平行光影响的结果
+	result += CalcDirLight(dirLight, norm, viewDir);
+	
+	// 2、计算点光源影响的结果
+	for(int i = 0; i < NUM_OF_POINT_LLIGHTS; ++i)
+	{
+		result += CalcPointLight(pointLights[i], norm, FragPos, viewDir);
+	}
+	
+	// 3、计算聚光灯光源影响的结果
+	result += CalcSpotLight(spotLight, norm, FragPos, viewDir);
+	
+	FragColor = vec4(result, 1.0f);
+}
+
+vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
+{
+	// 漫反射光的折算
+	float diff = max(dot(light.direction, normal), 0);
+	
+	// 镜面光的折算
+	vec3 reflectDir = reflect(-light.direction, normal);
+	float spec = pow(max(dot(viewDir, reflectDir), 0), material.shininess);
+		
+	vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
+	vec3 diffuse = light.diffuse * vec3(texture(material.diffuse, TexCoords));
+	vec3 specular = light.specular * vec3(texture(material.specular, TexCoords));
+	
+	// 环境光(不做衰减) + 漫反射 + 镜面反射
+	return (ambient + diff * diffuse + spec * specular);
+}
+
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
+{
+    // 光线方向
+	vec3 lightDir = normalize(light.position - fragPos);
+	
+	// 漫反射光的折算
+	float diff = max(dot(lightDir, normal), 0);
+	
+	// 镜面光的折算
+	vec3 reflectDir = reflect(-lightDir, normal);
+	float spec = pow(max(dot(viewDir, reflectDir), 0), material.shininess);
+	
+	// 点光源随距离的衰减
+	float distance = length(light.position - fragPos);
+	float attenuation = 1.0 / (light.constant + light.liner * distance + light.quadratic * (distance * distance));
+	
+	vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
+	vec3 diffuse = light.diffuse * vec3(texture(material.diffuse, TexCoords));
+	vec3 specular = light.specular * vec3(texture(material.specular, TexCoords));
+	
+	// 环境光(不做衰减) + 漫反射 + 镜面反射
+	return attenuation * (ambient + diff * diffuse + spec * specular);
+}
+
+vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
+{
+	// 光线方向
+	vec3 lightDir = normalize(light.position - fragPos);
+	
+	// 漫反射光的折算
+	float diff = max(dot(lightDir, normal), 0);
+	
+	// 镜面光的折算
+	vec3 reflectDir = reflect(-lightDir, normal);
+	float spec = pow(max(dot(viewDir, reflectDir), 0), material.shininess);
+	
+    // 点光源随距离的衰减
+	float distance = length(light.position - fragPos);
+	float attenuation = 1.0 / (light.constant + light.liner * distance + light.quadratic * (distance * distance));
+	
+	// 聚光灯光源
+	float theta = dot(lightDir, normalize(-light.direction));  
 	float epsilon = light.cutOff - light.outerCutOff;
 	float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 	
-	diffuse *= intensity;
-	specular *= intensity;
+	vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
+	vec3 diffuse = light.diffuse * vec3(texture(material.diffuse, TexCoords));
+	vec3 specular = light.specular * vec3(texture(material.specular, TexCoords));
 	
-	// 点光源，光强衰减
-	float distance = length(light.position - FragPos);
-	float attenuation = 1.0 / (light.constant + light.liner * distance + light.quadratic * (distance * distance));
-	
-	ambient *= attenuation;
-	diffuse *= attenuation;
-	specular *= attenuation;
-	
-	vec3 result = ambient + diffuse + specular;
-	FragColor = vec4(result, 1.0);
-
+	// 环境光(不做衰减) + 漫反射 + 镜面反射
+	return intensity * attenuation * (ambient + diff * diffuse + spec * specular);
 }
