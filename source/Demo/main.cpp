@@ -9,7 +9,7 @@ int main()
 	//Demo::TestDemo_3();
 	//Demo::TestDemo_4();
 
-	Demo::TestDemo2_1();
+	Demo::TestDemo3_1();
 	
 	system("pause");
     return 0;
