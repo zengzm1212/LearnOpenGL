@@ -45,6 +45,8 @@ struct SpotLight{
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
+	
+	sampler2D diffuseTexture;
 };
 
 #define NUM_OF_POINT_LLIGHTS   4   // 点光源的数量
@@ -146,7 +148,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
 	float distance = length(light.position - fragPos);
 	float attenuation = 1.0 / (light.constant + light.liner * distance + light.quadratic * (distance * distance));
 	
-	// 聚光灯光源
+	// 聚光灯光源  vec3(texture(light.diffuseTexture, TexCoords))
 	float theta = dot(lightDir, normalize(-light.direction));  
 	float epsilon = light.cutOff - light.outerCutOff;
 	float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);

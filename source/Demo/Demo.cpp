@@ -747,12 +747,15 @@ void Demo::TestDemo2_1()
 
 	unsigned int diffuseTexture = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/container2.jpg");
 	unsigned int specularTexture = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/container2_specular.jpg");
+	unsigned int lightDiffuseTexture = GLFWWindowUtils::LoadTexture("../../../source/Demo/images/awesomeface.jpg");
 
 	// 设置物体本身的材质相关设置
 	lightShader.useProgram();
 	lightShader.setInt("material.diffuse", 0);  // 将漫反射材质绑定到0号槽位
 	lightShader.setInt("material.specular", 1); // 将镜面反射材质绑定到1号槽位
 	lightShader.setFloat("material.shininess", 64.0f);
+
+	lightShader.setInt("spotLight.diffuseTexture", 2);
 
 	// timing ？？ 干嘛用？
 	float deltaTime = 0.0f;
@@ -848,6 +851,9 @@ void Demo::TestDemo2_1()
 
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, specularTexture);
+
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D, lightDiffuseTexture);
 
 			glBindVertexArray(lightVAO);
 			for (unsigned int i = 0; i < 10; ++i)
