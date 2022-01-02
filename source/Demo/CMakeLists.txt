@@ -12,16 +12,19 @@ include_directories(
 include_directories(
 ${THIRD_PARTY_GLFW_INCLUDE}
 ${THIRD_PARTY_GLM_INCLUDE}
+${THIRD_PARTY_ASSIMP_INCLUDE}
 )
  
  
 link_directories(
-${THIRD_PARTY_LIB}
+${THIRD_PARTY_GLFW_LIB}
+${THIRD_PARTY_ASSIMP_LIB}
 )
  
 link_libraries(
 opengl32.lib
 glfw3.lib
+assimp.lib
 )
 
 

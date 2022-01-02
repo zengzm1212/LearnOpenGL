@@ -16,9 +16,13 @@ set(ProjectName "$(ProjectName)")
 
 set(Demo ${CMAKE_CURRENT_SOURCE_DIR}/Demo) 
 
-set(THIRD_PARTY_GLFW_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../thirdParty/include/GLFW)
-set(THIRD_PARTY_GLM_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../thirdParty/include/glm)
-set(THIRD_PARTY_LIB ${CMAKE_CURRENT_SOURCE_DIR}/../thirdParty/lib/$(Configuration))
+set(THIRD_PARTY_GLFW_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../thirdParty/glfw/include)
+set(THIRD_PARTY_GLFW_LIB ${CMAKE_CURRENT_SOURCE_DIR}/../thirdParty/glfw/bin/$(Configuration))
+
+set(THIRD_PARTY_GLM_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../thirdParty/glm/include)
+
+set(THIRD_PARTY_ASSIMP_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/../thirdParty/assimp/Assimp.3.0.0/build/native/include/assimp)
+set(THIRD_PARTY_ASSIMP_LIB ${CMAKE_CURRENT_SOURCE_DIR}/../thirdParty/assimp/Assimp.3.0.0/build/native/lib/$(Platform))
 
 # 链接库目录
 link_directories(${PROJECT_BINARY_DIR}/../$(Platform)$(Configuration)) 
