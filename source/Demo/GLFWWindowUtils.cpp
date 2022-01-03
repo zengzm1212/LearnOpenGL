@@ -32,18 +32,19 @@ unsigned int GLFWWindowUtils::LoadTexture(const std::string& textureFilePath, st
 {
 	unsigned int textureBuffer;
 	glGenTextures(1, &textureBuffer);
-	glBindTexture(GL_TEXTURE_2D, textureBuffer);
-
-	// 为当前绑定的纹理对象设置环绕过滤方式
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	int width, height, nrChannels;// nrChannels: 颜色通道个数
 	unsigned char *data = stbi_load(textureFilePath.c_str(), &width, &height, &nrChannels, 0); // awesomeface.png  container.jpg
 	if (data)
 	{
+		glBindTexture(GL_TEXTURE_2D, textureBuffer);
+
+		// 为当前绑定的纹理对象设置环绕过滤方式
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);  // 为当前绑定的纹理自动生成所有需要的多级渐远纹理
 	}
